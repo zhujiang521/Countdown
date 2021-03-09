@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -66,11 +67,13 @@ fun TimeSelect(
             .padding(50.dp),
         textStyle = MaterialTheme.typography.body2,
         isError = emailState.showErrors(),
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = imeAction),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        // keyboardOptions = KeyboardOptions.Default.copy(imeAction = imeAction),
         keyboardActions = KeyboardActions(
             onDone = {
                 onImeAction()
-            }
+            },
+
         )
     )
 }

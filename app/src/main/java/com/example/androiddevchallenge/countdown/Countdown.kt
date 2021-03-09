@@ -15,9 +15,13 @@
  */
 package com.example.androiddevchallenge.countdown
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
@@ -34,6 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -77,10 +86,13 @@ fun Countdown() {
                     Text(text = "Countdown")
                 }
                 Text(
-                    modifier = Modifier.padding(30.dp),
-                    text = showCountdown ?: "Start",
+                    modifier = Modifier
+                        .padding(30.dp)
+                        .animateContentSize(),
+                    text = showCountdown?.showText ?: "Start",
                     style = MaterialTheme.typography.h3
                 )
+                ProgressCircle(viewModel = viewModel)
             }
         }
     )
@@ -107,4 +119,79 @@ private fun FunctionalityNotAvailablePopup(text: String, onDismiss: () -> Unit) 
             }
         }
     )
+}
+
+@Composable
+fun ProgressCircle(viewModel: CountdownViewModel) {
+
+    // Circle diameter
+    val size = 160.dp
+    val sweepAngle by viewModel.showCountdown.observeAsState()
+    Box(contentAlignment = Alignment.Center) {
+        Canvas(
+            modifier = Modifier.size(size)
+        ) {
+
+            // Circle radius
+            val r = size.toPx() / 2
+            // The width of Ring
+            val stokeWidth = 12.dp.toPx()
+            // Draw dial plate
+            drawCircle(
+                color = Color.LightGray,
+                style = Stroke(
+                    width = stokeWidth,
+                    pathEffect = PathEffect.dashPathEffect(
+                        intervals = floatArrayOf(1.dp.toPx(), 3.dp.toPx())
+                    )
+                )
+            )
+            // Draw ring
+            drawArc(
+                brush = Brush.sweepGradient(
+                    0f to Color.Magenta,
+                    0.5f to Color.Blue,
+                    0.75f to Color.Green,
+                    0.75f to Color.Transparent,
+                    1f to Color.Magenta
+                ),
+                startAngle = -90f,
+                sweepAngle = sweepAngle?.showAngle ?: 0f,
+                useCenter = false,
+                style = Stroke(
+                    width = stokeWidth
+                ),
+                alpha = 0.5f
+            )
+            // Pointer
+            val angle = (360 - (sweepAngle?.showAngle ?: 0f)) / 180 * Math.PI
+            val pointTailLength = 8.dp.toPx()
+            drawLine(
+                color = Color.Red,
+                start = Offset(
+                    r + pointTailLength * kotlin.math.sin(angle).toFloat(),
+                    r + pointTailLength * kotlin.math.cos(
+                        angle
+                    ).toFloat()
+                ),
+                end = Offset(
+                    (r - r * kotlin.math.sin(angle) - kotlin.math.sin(angle) * stokeWidth / 2).toFloat(),
+                    (
+                        r - r * kotlin.math.cos(
+                            angle
+                        ) - kotlin.math.cos(angle) * stokeWidth / 2
+                        ).toFloat()
+                ),
+                strokeWidth = 2.dp.toPx()
+            )
+            drawCircle(
+                color = Color.Red,
+                radius = 5.dp.toPx()
+            )
+            drawCircle(
+                color = Color.White,
+                radius = 3.dp.toPx()
+            )
+        }
+    }
 }

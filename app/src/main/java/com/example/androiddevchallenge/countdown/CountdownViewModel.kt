@@ -16,7 +16,6 @@
 package com.example.androiddevchallenge.countdown
 
 import android.os.CountDownTimer
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -25,10 +24,10 @@ import kotlinx.coroutines.launch
 
 class CountdownViewModel : ViewModel() {
 
-    private val _showCountdown = MutableLiveData("00:00")
-    val showCountdown: LiveData<String> = _showCountdown
+    private val _showCountdown = MutableLiveData(CountDown("00:00", 0f))
+    val showCountdown: LiveData<CountDown> = _showCountdown
 
-    fun onCountdownChanged(position: String) {
+    fun onCountdownChanged(position: CountDown) {
         _showCountdown.value = position
     }
 
@@ -40,28 +39,38 @@ class CountdownViewModel : ViewModel() {
     }
 
     fun startCountdown(second: Int) {
+        val sec = second.toLong() * 1000
         viewModelScope.launch {
             object : CountDownTimer(second.toLong() * 1000, 10) {
                 override fun onTick(millisUntilFinished: Long) {
                     val shi = (millisUntilFinished / 10) % 10
                     val bai = (millisUntilFinished / 100) % 10
                     val mill = millisUntilFinished / 1000
-                    Log.e("ZHUJIANG123", "onTick: $millisUntilFinished    $mill  $shi $bai ")
-                    onCountdownChanged(
+
+                    val bi = (millisUntilFinished.toFloat() / sec.toFloat())
+
+                    val count = CountDown(
                         if (mill < 10) {
                             "0$mill:$bai$shi"
                         } else {
                             "$mill:$bai$shi"
-                        }
+                        },
+                        bi * 360f
                     )
+                    onCountdownChanged(count)
                     onActiveChanged(true)
                 }
 
                 override fun onFinish() {
                     onActiveChanged(false)
-                    onCountdownChanged("00:00")
+                    onCountdownChanged(CountDown("00:00", 0f))
                 }
             }.start()
         }
     }
 }
+
+data class CountDown(
+    val showText: String,
+    val showAngle: Float
+)
